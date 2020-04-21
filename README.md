@@ -1,1 +1,1 @@
-# CS440-Face-and-Digit-Classification
+# CS520-Face-and-Digit-Classification
