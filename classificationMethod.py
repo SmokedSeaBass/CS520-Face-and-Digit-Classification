@@ -43,7 +43,7 @@ class ClassificationMethod:
     To make the classifier generic to multiple problems, the data should be represented
     as lists of Counters containing feature descriptions and their counts.
     """
-    abstract
+    pass
     
   def classify(self, data):
     """
@@ -53,5 +53,5 @@ class ClassificationMethod:
     To make the classifier generic to multiple problems, the data should be represented
     as lists of Counters containing feature descriptions and their counts.
     """
-    abstract
+    pass
 
