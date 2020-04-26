@@ -50,16 +50,16 @@ class Datum:
   The contents of the representation can be accessed directly
   via the getPixel and getPixels methods.
   """
-  def __init__(self, data,width,height):
+  def __init__(self, data, width, height):
     """
     Create a new datum from file input (standard MNIST encoding).
     """
     DATUM_HEIGHT = height
-    DATUM_WIDTH=width
+    DATUM_WIDTH = width
     self.height = DATUM_HEIGHT
     self.width = DATUM_WIDTH
     if data == None:
-      data = [[' ' for i in range(DATUM_WIDTH)] for j in range(DATUM_HEIGHT)] 
+      data = [[' ' for i in range(DATUM_WIDTH)] for j in range(DATUM_HEIGHT)]
     self.pixels = util.arrayInvert(convertToInteger(data)) 
     
   def getPixel(self, column, row):
@@ -92,14 +92,14 @@ class Datum:
 
 # Data processing, cleanup and display functions
     
-def loadDataFile(filename, n,width,height):
+def loadDataFile(filename, n, width, height):
   """
   Reads n data images from a file and returns a list of Datum objects.
   
   (Return less then n items if the end of file is encountered).
   """
-  DATUM_WIDTH=width
-  DATUM_HEIGHT=height
+  DATUM_WIDTH = width
+  DATUM_HEIGHT = height
   fin = readlines(filename)
   fin.reverse()
   items = []
@@ -119,7 +119,7 @@ import os
 def readlines(filename):
   "Opens a file or reads it from the zip archive data.zip"
   if(os.path.exists(filename)): 
-    return [l[:-1] for l in open(filename).readlines()]
+    return [l[:-1] for l in open(filename, 'r').readlines()]
   else: 
     z = zipfile.ZipFile('data.zip')
     return z.read(filename).split('\n')
@@ -162,10 +162,18 @@ def convertToInteger(data):
   """
   Helper function for file reading.
   """
+  for row in data:
+    for char in row:
+      char = IntegerConversionFunction(char)
+  intdata = [[0 if char == ' ' else 1 if char == '+' else 2 if char == '#' else char for char in row] for row in data]
+  return intdata
+
+  ''' old
   if type(data) != type([]):
     return IntegerConversionFunction(data)
   else:
     return map(convertToInteger, data)
+  '''
 
 # Testing
 

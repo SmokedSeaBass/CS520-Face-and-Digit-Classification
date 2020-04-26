@@ -73,14 +73,6 @@ def enhancedFeatureExtractorDigit(datum):
   
   return features
 
-
-def contestFeatureExtractorDigit(datum):
-  """
-  Specify features to use for the minicontest
-  """
-  features =  basicFeatureExtractorDigit(datum)
-  return features
-
 def enhancedFeatureExtractorFace(datum):
   """
   Your feature extraction playground for faces.
@@ -198,8 +190,6 @@ def readCommand( argv ):
       featureFunction = enhancedFeatureExtractorDigit
     else:
       featureFunction = basicFeatureExtractorDigit
-    if (options.classifier == 'minicontest'):
-      featureFunction = contestFeatureExtractorDigit
   elif(options.data=="faces"):
     printImage = ImagePrinter(FACE_DATUM_WIDTH, FACE_DATUM_HEIGHT).printImage
     if (options.features):
