@@ -38,15 +38,10 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
     # might be useful in your code later...
     # this is a list of all features in the training set.
     self.features = list(set([ f for datum in trainingData for f in datum.keys() ]))
-    
-    if (self.automaticTuning):
-        kgrid = [0.001, 0.01, 0.05, 0.1, 0.5, 1, 5, 10, 20, 50]
-    else:
-        kgrid = [self.k]
         
-    self.trainAndTune(trainingData, trainingLabels, validationData, validationLabels, kgrid)
+    self.trainAndTune(trainingData, trainingLabels, validationData, validationLabels)
       
-  def trainAndTune(self, trainingData, trainingLabels, validationData, validationLabels, kgrid):
+  def trainAndTune(self, trainingData, trainingLabels, validationData, validationLabels):
     """
     Trains the classifier by collecting counts over the training data, and
     stores the Laplace smoothed estimates so that they can be used to classify.
@@ -61,8 +56,67 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
     """
 
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
-        
+
+    # Get prior distribution
+    # P(y = true) for each label;  P(y = false) is just 1 - P(y = true)
+    # priorDistrib[label]
+    labelTotal = len(trainingLabels)
+    labelCounts = util.Counter()
+    for y in trainingLabels:
+      labelCounts[y] += 1
+    priorDistrib = util.Counter()
+    for y in self.legalLabels:
+      priorDistrib[y] = labelCounts[y]/labelTotal
+    
+    self.priorDistrib = priorDistrib
+
+    # Get count of feature = value for each label (used for computing conditional probabilities)
+    # grid[label][feature][value] = count
+    print(len(trainingData))
+    featureValueGrid = util.Counter()
+    for y in self.legalLabels:
+      featureValueGrid[y] = util.Counter()
+      for f in self.features:
+        featureValueGrid[y][f] = util.Counter()
+    for datum_index in range(0, len(trainingData)):
+      datum = trainingData[datum_index]
+      label = trainingLabels[datum_index]
+      for feature in datum:
+        value = datum[feature]
+        featureValueGrid[label][feature][value] += 1
+
+    # Get conditional probabilities
+    # p(φ_i(x) = v | y = true) and p(φ_i(x) = v | y = false)
+    probDistribTrue = util.Counter()    # list of p(φ_i(x) = v | y = true) for each value v of each feature i; 
+    probDistribFalse = util.Counter()   # list of p(φ_i(x) = v | y = false) for each value v of each feature i
+    for label in self.legalLabels:
+      probDistribTrue[label] = util.Counter()    # list of features 
+      probDistribFalse[label] = util.Counter()    # list of features 
+      for feature in self.features:
+        probDistribTrue[label][feature] = util.Counter()   # list of values
+        probDistribFalse[label][feature] = util.Counter()   # list of values
+        for value in featureValueGrid[label][feature]:
+          if (featureValueGrid[label][feature][value] == 0):
+            probDistribTrue[label][feature][value] = 0
+          else:
+            probDistribTrue[label][feature][value] = (featureValueGrid[label][feature][value])/(labelCounts[label])
+          
+          falseCount = 0
+          for label2 in self.legalLabels:
+            if (label2 == label):
+              continue
+            falseCount += featureValueGrid[label2][feature][value]
+          if (falseCount == 0): 
+            probDistribFalse[label][feature][value] = 0
+          else:
+            probDistribFalse[label][feature][value] = (falseCount)/(labelTotal - labelCounts[label])
+    
+    self.probDistribTrue = probDistribTrue
+    self.probDistribFalse = probDistribFalse
+    return
+
+
+
   def classify(self, testData):
     """
     Classify the data based on the posterior distribution over labels.
@@ -70,42 +124,22 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
     You shouldn't modify this method.
     """
     guesses = []
-    self.posteriors = [] # Log posteriors are stored for later data analysis (autograder).
+    L = util.Counter()
     for datum in testData:
-      posterior = self.calculateLogJointProbabilities(datum)
-      guesses.append(posterior.argMax())
-      self.posteriors.append(posterior)
+      for label in self.legalLabels:
+        L[label] = 1        # intialize at 1, will be the L product for each label
+      for feature in datum:
+        value = datum[feature]
+        for label in self.legalLabels:
+          # L = ()
+          A1 = max(0.001, self.probDistribTrue[label][feature][value])
+          A2 = max(0.001, self.priorDistrib[label])
+          B1 = max(0.001, self.probDistribFalse[label][feature][value])
+          B2 = max(0.001, (1.0 - self.priorDistrib[label]))
+          # print (str(A1) + " * " + str (A2) + " / " + str(B1) + " * " + str(B2))
+          L[label] *= ((A1 * A2) / (B1 * B2))
+      guesses.append(L.argMax())    # choose label with highest likelyhood
     return guesses
-      
-  def calculateLogJointProbabilities(self, datum):
-    """
-    Returns the log-joint distribution over legal labels and the datum.
-    Each log-probability should be stored in the log-joint counter, e.g.    
-    logJoint[3] = <Estimate of log( P(Label = 3, datum) )>
-    
-    To get the list of all possible features or labels, use self.features and 
-    self.legalLabels.
-    """
-    logJoint = util.Counter()
-    
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    
-    return logJoint
-  
-  def findHighOddsFeatures(self, label1, label2):
-    """
-    Returns the 100 best features for the odds ratio:
-            P(feature=1 | label1)/P(feature=1 | label2) 
-    
-    Note: you may find 'self.features' a useful way to loop through all possible features
-    """
-    featuresOdds = []
-       
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
-
-    return featuresOdds
     
 
     
