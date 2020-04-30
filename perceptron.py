@@ -8,6 +8,7 @@
 
 # Perceptron implementation
 import util
+import random
 PRINT = True
 
 class PerceptronClassifier:
@@ -44,12 +45,39 @@ class PerceptronClassifier:
     self.features = trainingData[0].keys() # could be useful later
     # DO NOT ZERO OUT YOUR WEIGHTS BEFORE STARTING TRAINING, OR
     # THE AUTOGRADER WILL LIKELY DEDUCT POINTS.
-    
+
+    random.seed()
+
+    # initialize weights
+    for label in self.legalLabels:
+      for feature in self.features:
+        self.weights[label][feature] = random.uniform(-0.005, 0.005)
+
+    w0 = util.Counter()   # weight for the "1" feature for each label; w0[label] = "1" feature weight
+    score = util.Counter()    # counter from labels to scores
+    correctLabel = None
+    guessedLabel = None
+
     for iteration in range(self.max_iterations):
       print("Starting iteration ", iteration, "...")
       for i in range(len(trainingData)):
           "*** YOUR CODE HERE ***"
-          util.raiseNotDefined()
+          datum = trainingData[i]
+          correctLabel = trainingLabels[i]
+          for label in self.legalLabels:
+            score[label] = w0[label]
+            for feature in self.features:
+              score[label] += datum[feature] * self.weights[label][feature]
+          guessedLabel = score.argMax()   # return best scoring label
+          if (guessedLabel == correctLabel):    # Weights work, don't touch anything! Otherwise, lower the guessed label's weights and raise the correct label's weights
+            continue
+          self.weights[correctLabel] += datum
+          w0[correctLabel] += 1
+          self.weights[guessedLabel] -= datum
+          w0[guessedLabel] -= 1
+
+          
+
     
   def classify(self, data ):
     """
@@ -65,16 +93,4 @@ class PerceptronClassifier:
         vectors[l] = self.weights[l] * datum
       guesses.append(vectors.argMax())
     return guesses
-
-  
-  def findHighWeightFeatures(self, label):
-    """
-    Returns a list of the 100 features with the greatest weight for some label
-    """
-    featuresWeights = []
-
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
-
-    return featuresWeights
 
