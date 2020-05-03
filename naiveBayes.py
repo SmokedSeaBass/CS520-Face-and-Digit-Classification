@@ -60,35 +60,37 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
     # Get prior distribution
     # P(y = true) for each label;  P(y = false) is just 1 - P(y = true)
     # priorDistrib[label]
+    print("Calculating prior distributions...")
     labelTotal = len(trainingLabels)
     labelCounts = util.Counter()
-    for y in trainingLabels:
-      labelCounts[y] += 1
+    for label in trainingLabels:
+      labelCounts[label] += 1
     priorDistrib = util.Counter()
-    for y in self.legalLabels:
-      priorDistrib[y] = labelCounts[y]/labelTotal
+    for label in self.legalLabels:
+      priorDistrib[label] = labelCounts[label]/labelTotal
     
     self.priorDistrib = priorDistrib
 
-    # Get count of feature = value for each label (used for computing conditional probabilities)
+    # Get count of feature = value for each label (used for computing conditional probabilities later)
     # grid[label][feature][value] = count
-    print(len(trainingData))
-    featureValueGrid = util.Counter()
-    for y in self.legalLabels:
-      featureValueGrid[y] = util.Counter()
-      for f in self.features:
-        featureValueGrid[y][f] = util.Counter()
+    print("Getting feature=value counts for each label...")
+    featureValueGrid = util.Counter()         # counter from labels to features
+    for label in self.legalLabels:
+      featureValueGrid[label] = util.Counter()    # counter from feature to values
+      for feature in self.features:
+        featureValueGrid[label][feature] = util.Counter()     # counter from values to count
     for datum_index in range(0, len(trainingData)):
       datum = trainingData[datum_index]
       label = trainingLabels[datum_index]
-      for feature in datum:
+      for feature in self.features:
         value = datum[feature]
         featureValueGrid[label][feature][value] += 1
 
     # Get conditional probabilities
     # p(φ_i(x) = v | y = true) and p(φ_i(x) = v | y = false)
-    probDistribTrue = util.Counter()    # list of p(φ_i(x) = v | y = true) for each value v of each feature i; 
-    probDistribFalse = util.Counter()   # list of p(φ_i(x) = v | y = false) for each value v of each feature i
+    print("Calculating conditional probabilities...")
+    probDistribTrue = util.Counter()    # list of p(φ_i(x) = v | y = true) for each value v of each feature i, for each label y 
+    probDistribFalse = util.Counter()   # list of p(φ_i(x) = v | y = false) for each value v of each feature i, for each label y
     for label in self.legalLabels:
       probDistribTrue[label] = util.Counter()    # list of features 
       probDistribFalse[label] = util.Counter()    # list of features 

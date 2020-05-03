@@ -46,20 +46,19 @@ class PerceptronClassifier:
     # DO NOT ZERO OUT YOUR WEIGHTS BEFORE STARTING TRAINING, OR
     # THE AUTOGRADER WILL LIKELY DEDUCT POINTS.
 
+    # initialize weights to random values
     random.seed()
-
-    # initialize weights
     for label in self.legalLabels:
       for feature in self.features:
         self.weights[label][feature] = random.uniform(-0.005, 0.005)
 
-    w0 = util.Counter()   # weight for the "1" feature for each label; w0[label] = "1" feature weight
+    w0 = util.Counter()   # weight for the "1"-feature for each label; w0[y] = "1"-feature weight for each label 'y'
     score = util.Counter()    # counter from labels to scores
     correctLabel = None
     guessedLabel = None
 
     for iteration in range(self.max_iterations):
-      print("Starting iteration ", iteration, "...")
+      print("Starting Perceptron iteration ", iteration, "...")
       for i in range(len(trainingData)):
           "*** YOUR CODE HERE ***"
           datum = trainingData[i]
@@ -72,9 +71,9 @@ class PerceptronClassifier:
           if (guessedLabel == correctLabel):    # Weights work, don't touch anything! Otherwise, lower the guessed label's weights and raise the correct label's weights
             continue
           self.weights[correctLabel] += datum
-          w0[correctLabel] += 1
+          w0[correctLabel] += 1.0
           self.weights[guessedLabel] -= datum
-          w0[guessedLabel] -= 1
+          w0[guessedLabel] -= 1.0
 
           
 
