@@ -8,6 +8,7 @@
 
 # Mira implementation
 import util
+import random
 PRINT = True
 
 class MiraClassifier:
@@ -37,10 +38,11 @@ class MiraClassifier:
       
     self.features = trainingData[0].keys() # this could be useful for your code later...
     
-    if (self.automaticTuning):
-        Cgrid = [0.002, 0.004, 0.008]
-    else:
-        Cgrid = [self.C]
+    # if (self.automaticTuning):
+    #     Cgrid = [0.002, 0.004, 0.008]
+    # else:
+    #     Cgrid = [self.C]
+    Cgrid = [self.C]
         
     return self.trainAndTune(trainingData, trainingLabels, validationData, validationLabels, Cgrid)
 
@@ -55,8 +57,32 @@ class MiraClassifier:
     representing a vector of values.
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    self.initializeWeightsToZero()    # no "1" feature like perceptron this time, only image features have weights
+    score = util.Counter()    # counter from labels to scores
+    correctLabel = None
+    guessedLabel = None
 
+    for iteration in range(self.max_iterations):
+      print("Starting MIRA iteration ", iteration, "...")
+      for i in range(len(trainingData)):
+        "*** YOUR CODE HERE ***"
+        datum = trainingData[i]
+        correctLabel = trainingLabels[i]
+        for label in self.legalLabels:
+          score[label] = 0
+          for feature in self.features:
+            score[label] += datum[feature] * self.weights[label][feature]
+        guessedLabel = score.argMax()   # guess the label with best score
+        if (guessedLabel == correctLabel):    # Weights work, don't touch anything! Otherwise, lower the guessed label's weights and raise the correct label's weights
+          continue
+        # calculate t, the variable step size
+        t = min(Cgrid[0], (((self.weights[guessedLabel] - self.weights[correctLabel]) * datum + 1) / (2 * (datum * datum))))
+        # adjust weights according to t
+        for feature in self.weights[correctLabel]:
+          self.weights[correctLabel][feature] += t * datum[feature]
+          self.weights[guessedLabel][feature] -= t * datum[feature]
+
+          
   def classify(self, data ):
     """
     Classifies each datum as the label that most closely matches the prototype vector
@@ -72,16 +98,4 @@ class MiraClassifier:
       guesses.append(vectors.argMax())
     return guesses
 
-  
-  def findHighOddsFeatures(self, label1, label2):
-    """
-    Returns a list of the 100 features with the greatest difference in feature values
-                     w_label1 - w_label2
-
-    """
-    featuresOdds = []
-
-    "*** YOUR CODE HERE ***"
-
-    return featuresOdds
 
