@@ -17,6 +17,9 @@ import samples
 import sys
 import util
 
+import time
+import math
+
 TEST_SET_SIZE = 100
 DIGIT_DATUM_WIDTH=28
 DIGIT_DATUM_HEIGHT=28
@@ -34,7 +37,7 @@ def basicFeatureExtractorDigit(datum):
   features = util.Counter()
   for x in range(DIGIT_DATUM_WIDTH):
     for y in range(DIGIT_DATUM_HEIGHT):
-      if datum.getPixel(x, y) > 0:
+      if a[x][y] > 0:
         features[(x,y)] = 1
       else:
         features[(x,y)] = 0
@@ -50,7 +53,7 @@ def basicFeatureExtractorFace(datum):
   features = util.Counter()
   for x in range(FACE_DATUM_WIDTH):
     for y in range(FACE_DATUM_HEIGHT):
-      if datum.getPixel(x, y) > 0:
+      if a[x][y] > 0:
         features[(x,y)] = 1
       else:
         features[(x,y)] = 0
@@ -65,11 +68,81 @@ def enhancedFeatureExtractorDigit(datum):
   
   ## DESCRIBE YOUR ENHANCED FEATURES HERE...
   
+  quad# = number of non-blank pixels in the #th quadrant, where # can be 0-8 (as if the image was divided into a 3x3 grid)
+
   ##
   """
+
   features =  basicFeatureExtractorDigit(datum)
 
   "*** YOUR CODE HERE ***"
+
+  a = datum.getPixels()
+  cellPixelCount = 0
+
+  # could be much better written but my brain is fried
+  for y in range(0, 9):
+    for x in range(0, 9):
+      if (a[x][y] > 0):
+        cellPixelCount = 1
+  features['cell0'] = cellPixelCount
+
+  cellPixelCount = 0
+  for y in range(0, 9):
+    for x in range(9, 19):
+      if (a[x][y] > 0):
+        cellPixelCount = 1
+  features['cell1'] = cellPixelCount
+
+  cellPixelCount = 0
+  for y in range(0, 9):
+    for x in range(19, 28):
+      if (a[x][y] > 0):
+        cellPixelCount = 1
+  features['cell2'] = cellPixelCount
+
+  cellPixelCount = 0
+  for y in range(9, 19):
+    for x in range(0, 9):
+      if (a[x][y] > 0):
+        cellPixelCount = 1
+  features['cell3'] = cellPixelCount
+
+  cellPixelCount = 0
+  for y in range(9, 19):
+    for x in range(9, 19):
+      if (a[x][y] > 0):
+        cellPixelCount = 1
+  features['cell4'] = cellPixelCount
+
+  cellPixelCount = 0
+  for y in range(9, 19):
+    for x in range(19, 28):
+      if (a[x][y] > 0):
+        cellPixelCount = 1
+  features['cell5'] = cellPixelCount
+
+  cellPixelCount = 0
+  for y in range(19, 28):
+    for x in range(0, 9):
+      if (a[x][y] > 0):
+        cellPixelCount = 1
+  features['cell6'] = cellPixelCount
+
+  cellPixelCount = 0
+  for y in range(19, 28):
+    for x in range(9, 19):
+      if (a[x][y] > 0):
+        cellPixelCount = 1
+  features['cell7'] = cellPixelCount
+
+  cellPixelCount = 0
+  for y in range(19, 28):
+    for x in range(19, 28):
+      if (a[x][y] > 0):
+        cellPixelCount = 1
+  features['cell8'] = cellPixelCount
+      
   
   return features
 
@@ -79,6 +152,73 @@ def enhancedFeatureExtractorFace(datum):
   It is your choice to modify this.
   """
   features =  basicFeatureExtractorFace(datum)
+
+  a = datum.getPixels()
+  cellPixelCount = 0
+
+  # could be much better written but my brain is fried
+  for y in range(0, 23):
+    for x in range(0, 20):
+      if (a[x][y] > 0):
+        cellPixelCount = 1
+  features['cell0'] = cellPixelCount
+
+  cellPixelCount = 0
+  for y in range(0, 23):
+    for x in range(20, 40):
+      if (a[x][y] > 0):
+        cellPixelCount = 1
+  features['cell1'] = cellPixelCount
+
+  cellPixelCount = 0
+  for y in range(0, 23):
+    for x in range(40, 60):
+      if (a[x][y] > 0):
+        cellPixelCount = 1
+  features['cell2'] = cellPixelCount
+
+  cellPixelCount = 0
+  for y in range(23, 47):
+    for x in range(0, 20):
+      if (a[x][y] > 0):
+        cellPixelCount = 1
+  features['cell3'] = cellPixelCount
+
+  cellPixelCount = 0
+  for y in range(23, 47):
+    for x in range(20, 40):
+      if (a[x][y] > 0):
+        cellPixelCount = 1
+  features['cell4'] = cellPixelCount
+
+  cellPixelCount = 0
+  for y in range(23, 47):
+    for x in range(40, 60):
+      if (a[x][y] > 0):
+        cellPixelCount = 1
+  features['cell5'] = cellPixelCount
+
+  cellPixelCount = 0
+  for y in range(47, 70):
+    for x in range(0, 20):
+      if (a[x][y] > 0):
+        cellPixelCount = 1
+  features['cell6'] = cellPixelCount
+
+  cellPixelCount = 0
+  for y in range(47, 70):
+    for x in range(20, 40):
+      if (a[x][y] > 0):
+        cellPixelCount = 1
+  features['cell7'] = cellPixelCount
+
+  cellPixelCount = 0
+  for y in range(47, 70):
+    for x in range(40, 60):
+      if (a[x][y] > 0):
+        cellPixelCount = 1
+  features['cell8'] = cellPixelCount
+
   return features
 
 def analysis(classifier, guesses, testLabels, testData, rawTestData, printImage):
@@ -314,7 +454,9 @@ def runClassifier(args, options):
   
   # Conduct training and testing
   print("Training...")
+  trainTimeStart = time.time()
   classifier.train(trainingData, trainingLabels, validationData, validationLabels)
+  print("Training completed in %s seconds." % (time.time() - trainTimeStart))
   print("Validating...")
   guesses = classifier.classify(validationData)
   correct = [guesses[i] == validationLabels[i] for i in range(len(validationLabels))].count(True)
