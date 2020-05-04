@@ -61,58 +61,44 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
     # P(y = true) for each label;  P(y = false) is just 1 - P(y = true)
     # priorDistrib[label]
     print("Calculating prior distributions...")
-    labelTotal = len(trainingLabels)
+    labelTotal = len(trainingLabels) * 1.0
     labelCounts = util.Counter()
     for label in trainingLabels:
-      labelCounts[label] += 1
+      labelCounts[label] += 1.0
     priorDistrib = util.Counter()
     for label in self.legalLabels:
       priorDistrib[label] = labelCounts[label]/labelTotal
     
     self.priorDistrib = priorDistrib
 
-    # Get count of feature = value for each label (used for computing conditional probabilities later)
-    # grid[label][feature][value] = count
+    # Get count of feature=value for each label (used for computing conditional probabilities later)
+    # grid[label][(feature, value)] = count
     print("Getting feature=value counts for each label...")
-    featureValueGrid = util.Counter()         # counter from labels to features
+    featureValueGrid = util.Counter()         # counter from labels to features=value pairs
     for label in self.legalLabels:
-      featureValueGrid[label] = util.Counter()    # counter from feature to values
-      for feature in self.features:
-        featureValueGrid[label][feature] = util.Counter()     # counter from values to count
-    for datum_index in range(0, len(trainingData)):
-      datum = trainingData[datum_index]
-      label = trainingLabels[datum_index]
+      featureValueGrid[label] = util.Counter()    # counter from features=value pairs to counts (of that pair)
+    for i in range(len(trainingData)):
+      datum = trainingData[i]
+      label = trainingLabels[i]
       for feature in self.features:
         value = datum[feature]
-        featureValueGrid[label][feature][value] += 1
+        featureValueGrid[label][(feature, value)] += 1.0
 
     # Get conditional probabilities
     # p(φ_i(x) = v | y = true) and p(φ_i(x) = v | y = false)
+    # probDistribTrue[label][(feature, value)]
     print("Calculating conditional probabilities...")
     probDistribTrue = util.Counter()    # list of p(φ_i(x) = v | y = true) for each value v of each feature i, for each label y 
     probDistribFalse = util.Counter()   # list of p(φ_i(x) = v | y = false) for each value v of each feature i, for each label y
     for label in self.legalLabels:
-      probDistribTrue[label] = util.Counter()    # list of features 
-      probDistribFalse[label] = util.Counter()    # list of features 
-      for feature in self.features:
-        probDistribTrue[label][feature] = util.Counter()   # list of values
-        probDistribFalse[label][feature] = util.Counter()   # list of values
-        for value in featureValueGrid[label][feature]:
-          if (featureValueGrid[label][feature][value] == 0):
-            probDistribTrue[label][feature][value] = 0
-          else:
-            probDistribTrue[label][feature][value] = (featureValueGrid[label][feature][value])/(labelCounts[label])
-          
-          falseCount = 0
-          for label2 in self.legalLabels:
-            if (label2 == label):
-              continue
-            falseCount += featureValueGrid[label2][feature][value]
-          if (falseCount == 0): 
-            probDistribFalse[label][feature][value] = 0
-          else:
-            probDistribFalse[label][feature][value] = (falseCount)/(labelTotal - labelCounts[label])
-    
+      probDistribTrue[label] = util.Counter()    # list of features=value pairs where label is true
+      probDistribFalse[label] = util.Counter()    # list of features=value pairs where label is false
+      for pair in featureValueGrid[label]:
+        probDistribTrue[label][pair] = featureValueGrid[label][pair] / labelCounts[label]
+        for label2 in self.legalLabels:
+          if (label2 != label):
+            probDistribFalse[label][pair] += featureValueGrid[label2][pair]
+        probDistribFalse[label][pair] /= (labelTotal - labelCounts[label])
     self.probDistribTrue = probDistribTrue
     self.probDistribFalse = probDistribFalse
     return
@@ -134,10 +120,10 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
         value = datum[feature]
         for label in self.legalLabels:
           # L = ()
-          A1 = max(0.001, self.probDistribTrue[label][feature][value])
-          A2 = max(0.001, self.priorDistrib[label])
-          B1 = max(0.001, self.probDistribFalse[label][feature][value])
-          B2 = max(0.001, (1.0 - self.priorDistrib[label]))
+          A1 = max(0.00000000001, self.probDistribTrue[label][(feature, value)]) * 1.0
+          A2 = max(0.00000000001, self.priorDistrib[label]) * 1.0
+          B1 = max(0.00000000001, self.probDistribFalse[label][(feature, value)]) * 1.0
+          B2 = max(0.00000000001, (1.0 - self.priorDistrib[label])) * 1.0
           # print (str(A1) + " * " + str (A2) + " / " + str(B1) + " * " + str(B2))
           L[label] *= ((A1 * A2) / (B1 * B2))
       guesses.append(L.argMax())    # choose label with highest likelyhood
