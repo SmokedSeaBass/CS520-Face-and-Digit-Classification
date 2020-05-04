@@ -50,7 +50,7 @@ class PerceptronClassifier:
     random.seed()
     for label in self.legalLabels:
       for feature in self.features:
-        self.weights[label][feature] = random.uniform(-0.005, 0.005)
+        self.weights[label][feature] = random.uniform(-0.001, 0.001)
 
     w0 = util.Counter()   # weight for the "1"-feature for each label; w0[y] = "1"-feature weight for each label 'y'
     score = util.Counter()    # counter from labels to scores
